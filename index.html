@@ -6,6 +6,7 @@
     <title>Climate Intelligence Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
 
@@ -67,18 +68,18 @@
         }
     </style>
 </head>
-<body class="h-screen flex flex-col overflow-hidden text-slate-200">
+<body class="min-h-screen xl:h-screen flex flex-col overflow-y-auto xl:overflow-hidden text-slate-200" id="report-container">
 
     <!-- Header -->
     <header class="glass-panel mx-4 mt-4 p-4 flex flex-col xl:flex-row justify-between items-center z-10 shrink-0 gap-4">
         <!-- Logo and NGO Name -->
-        <div class="flex items-center gap-4 w-full xl:w-auto">
-            <img src="./logo.png" alt="EDAE Logo" class="h-14 w-14 object-contain rounded-xl shadow-[0_0_15px_rgba(56,189,248,0.3)] bg-white/5 p-1">
+        <div class="flex flex-col sm:flex-row items-center gap-3 sm:gap-4 w-full xl:w-auto text-center sm:text-left">
+            <img src="./logo.png" alt="EDAE Logo" class="h-12 w-12 sm:h-14 sm:w-14 object-contain rounded-xl shadow-[0_0_15px_rgba(56,189,248,0.3)] bg-white/5 p-1">
             <div>
-                <h1 class="text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-emerald-400 to-cyan-300 glow-text leading-tight">
+                <h1 class="text-base sm:text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-emerald-400 to-cyan-300 glow-text leading-tight">
                     Environmentalist Development<br/>Association Ethiopia
                 </h1>
-                <p class="text-[10px] text-slate-400 uppercase tracking-widest font-semibold mt-1">Kebele Rainfall Intelligence</p>
+                <p class="text-[9px] sm:text-[10px] text-slate-400 uppercase tracking-widest font-semibold mt-1">Kebele Rainfall Intelligence</p>
             </div>
         </div>
 
@@ -89,18 +90,20 @@
             </div>
         </div>
         
-        <!-- Right side empty spacer for balance -->
-        <div class="hidden xl:block w-auto text-right">
-            <div class="text-sm font-semibold text-cyan-400 glow-text">CHIRPS Analytics</div>
-            <div class="text-xs text-slate-500 font-mono mt-0.5">2015 &mdash; 2025</div>
+        <!-- Right side Export button -->
+        <div class="w-full xl:w-auto flex justify-center xl:justify-end">
+            <button onclick="downloadPDF()" class="flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-cyan-900 text-cyan-400 hover:text-white rounded-xl border border-slate-700 hover:border-cyan-500 transition-all shadow-[0_0_10px_rgba(34,211,238,0.1)] hover:shadow-[0_0_15px_rgba(34,211,238,0.4)]">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                <span class="text-sm font-bold">Export Report</span>
+            </button>
         </div>
     </header>
 
     <!-- Main Content -->
-    <main class="flex-1 flex gap-4 p-4 overflow-hidden h-full">
+    <main class="flex-1 flex flex-col xl:flex-row gap-4 p-4 overflow-visible xl:overflow-hidden h-auto xl:h-full">
         
         <!-- Left: Rankings -->
-        <aside class="w-1/4 glass-panel flex flex-col p-5 overflow-hidden">
+        <aside class="w-full xl:w-1/4 glass-panel flex flex-col p-4 sm:p-5 overflow-hidden min-h-[300px] xl:min-h-[350px]">
             <div class="flex items-center justify-between mb-6">
                 <h2 class="text-lg font-semibold text-slate-100 flex items-center gap-2">
                     <svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
@@ -114,13 +117,13 @@
         </aside>
 
         <!-- Center: Interactive Analytics Matrix -->
-        <section class="w-1/2 glass-panel p-6 flex flex-col relative overflow-hidden">
-            <h2 class="text-xl font-bold mb-1 text-white">Spatiotemporal Rainfall Matrix</h2>
-            <p class="text-sm text-slate-400 mb-6">Annual distribution intensity across all kebeles</p>
+        <section class="w-full xl:w-1/2 glass-panel p-4 sm:p-6 flex flex-col relative overflow-hidden min-h-[450px] xl:min-h-[600px]">
+            <h2 class="text-lg sm:text-xl font-bold mb-1 text-white">Spatiotemporal Rainfall Matrix</h2>
+            <p class="text-xs sm:text-sm text-slate-400 mb-4 sm:mb-6">Annual distribution intensity across all kebeles</p>
             
             <!-- Custom Heatmap -->
-            <div class="flex-1 flex flex-col justify-center mb-6">
-                <div id="heatmapContainer" class="w-full bg-slate-900/50 rounded-xl p-4 border border-slate-700/50 backdrop-blur-sm">
+            <div class="flex-1 flex flex-col justify-center mb-6 overflow-x-auto custom-scrollbar pb-2">
+                <div id="heatmapContainer" class="min-w-[500px] sm:min-w-[600px] w-full bg-slate-900/50 rounded-xl p-3 sm:p-4 border border-slate-700/50 backdrop-blur-sm">
                     <!-- Heatmap Grid -->
                 </div>
             </div>
@@ -135,7 +138,7 @@
         </section>
 
         <!-- Right: Detail Panel -->
-        <aside class="w-1/4 flex flex-col gap-4">
+        <aside class="w-full xl:w-1/4 flex flex-col gap-4 min-h-[450px] xl:min-h-[600px]">
             <div class="glass-panel p-5 flex-1 flex flex-col">
                 <div class="mb-6 border-b border-slate-700 pb-4">
                     <h2 id="detailTitle" class="text-2xl font-bold text-white mb-1 glow-text">--</h2>
@@ -496,6 +499,66 @@
         renderYearSelector();
         updateDetailPanel(processedData[0]);
 
+        // PDF Download Function
+        function downloadPDF() {
+            const element = document.getElementById('report-container');
+            
+            // Temporarily store classes and styles to restore them later
+            const originalClasses = new Map();
+            const originalStyles = new Map();
+            
+            // Find all elements that might scroll or truncate
+            const nodes = [element, ...element.querySelectorAll('*')];
+            nodes.forEach(node => {
+                // Save original
+                originalClasses.set(node, node.className);
+                originalStyles.set(node, node.getAttribute('style'));
+                
+                // Remove restrictions for PDF
+                if (node.classList && node.classList.remove) {
+                    node.classList.remove('overflow-y-auto', 'overflow-x-auto', 'overflow-hidden', 'xl:overflow-hidden', 'min-h-screen', 'xl:h-screen', 'h-full', 'xl:h-full');
+                }
+                
+                // Allow specific scrollable containers to grow
+                if (node.id === 'kebeleList' || node.id === 'heatmapContainer' || node.tagName === 'MAIN' || node.tagName === 'ASIDE' || node.tagName === 'SECTION') {
+                    node.style.height = 'auto';
+                    node.style.maxHeight = 'none';
+                    node.style.overflow = 'visible';
+                }
+            });
+
+            // Hide the export button in the PDF
+            const exportBtn = element.querySelector('button[onclick="downloadPDF()"]');
+            if (exportBtn) exportBtn.style.display = 'none';
+
+            const opt = {
+                margin:       [0.3, 0.3, 0.3, 0.3],
+                filename:     'EDAE_Rainfall_Report.pdf',
+                image:        { type: 'jpeg', quality: 1 },
+                html2canvas:  { 
+                    scale: 2, 
+                    useCORS: true, 
+                    windowWidth: 1920, // Forces xl breakpoints in Tailwind
+                    scrollY: 0
+                },
+                jsPDF:        { unit: 'in', format: 'a3', orientation: 'landscape' }
+            };
+            
+            html2pdf().set(opt).from(element).save().then(() => {
+                // Restore everything
+                nodes.forEach(node => {
+                    if (originalClasses.has(node)) {
+                        node.className = originalClasses.get(node);
+                    }
+                    const origStyle = originalStyles.get(node);
+                    if (origStyle === null) {
+                        node.removeAttribute('style');
+                    } else {
+                        node.setAttribute('style', origStyle);
+                    }
+                });
+            });
+        }
     </script>
 </body>
 </html>
