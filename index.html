@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Climate Intelligence Dashboard</title>
+    <title>Climate Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
@@ -79,7 +79,7 @@
                 <h1 class="text-base sm:text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-emerald-400 to-cyan-300 glow-text leading-tight">
                     Environmentalist Development<br/>Association Ethiopia
                 </h1>
-                <p class="text-[9px] sm:text-[10px] text-slate-400 uppercase tracking-widest font-semibold mt-1">Kebele Rainfall Intelligence</p>
+                <p class="text-[9px] sm:text-[10px] text-slate-400 uppercase tracking-widest font-semibold mt-1">Inchini Rainfall Pattern</p>
             </div>
         </div>
 
@@ -501,63 +501,122 @@
 
         // PDF Download Function
         function downloadPDF() {
-            const element = document.getElementById('report-container');
+            // Create a temporary container for the PDF report
+            const printContainer = document.createElement('div');
+            printContainer.style.padding = '30px';
+            printContainer.style.background = '#ffffff';
+            printContainer.style.color = '#1e293b';
+            printContainer.style.fontFamily = "'Outfit', sans-serif";
+            printContainer.style.width = '100%';
             
-            // Temporarily store classes and styles to restore them later
-            const originalClasses = new Map();
-            const originalStyles = new Map();
+            // Extract a comprehensive chart for the PDF
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = 1000;
+            tempCanvas.height = 350;
             
-            // Find all elements that might scroll or truncate
-            const nodes = [element, ...element.querySelectorAll('*')];
-            nodes.forEach(node => {
-                // Save original
-                originalClasses.set(node, node.className);
-                originalStyles.set(node, node.getAttribute('style'));
-                
-                // Remove restrictions for PDF
-                if (node.classList && node.classList.remove) {
-                    node.classList.remove('overflow-y-auto', 'overflow-x-auto', 'overflow-hidden', 'xl:overflow-hidden', 'min-h-screen', 'xl:h-screen', 'h-full', 'xl:h-full');
-                }
-                
-                // Allow specific scrollable containers to grow
-                if (node.id === 'kebeleList' || node.id === 'heatmapContainer' || node.tagName === 'MAIN' || node.tagName === 'ASIDE' || node.tagName === 'SECTION') {
-                    node.style.height = 'auto';
-                    node.style.maxHeight = 'none';
-                    node.style.overflow = 'visible';
+            const pdfChartCtx = tempCanvas.getContext('2d');
+            const colors = ['#38bdf8', '#34d399', '#f472b6', '#fbbf24', '#a78bfa']; // Distinct colors for each Kebele
+            
+            const allDatasets = processedData.map((k, i) => {
+                return {
+                    label: k.name,
+                    data: years.map(y => k.data[y]),
+                    borderColor: colors[i % colors.length],
+                    backgroundColor: colors[i % colors.length],
+                    borderWidth: 3,
+                    pointRadius: 4,
+                    pointBackgroundColor: '#0f172a',
+                    tension: 0.4
+                };
+            });
+
+            new Chart(pdfChartCtx, {
+                type: 'line',
+                data: {
+                    labels: years,
+                    datasets: allDatasets
+                },
+                options: {
+                    responsive: false,
+                    animation: false,
+                    plugins: {
+                        legend: { 
+                            position: 'top', 
+                            labels: { color: '#ffffff', usePointStyle: true, padding: 20, font: { family: "'Outfit', sans-serif", size: 12 } } 
+                        }
+                    },
+                    scales: {
+                        y: { 
+                            grid: { color: 'rgba(255,255,255,0.1)' }, 
+                            ticks: { color: '#cbd5e1', font: { family: "'Outfit', sans-serif" } },
+                            title: { display: true, text: 'Rainfall (mm)', color: '#94a3b8', font: { family: "'Outfit', sans-serif" } }
+                        },
+                        x: { 
+                            grid: { display: false }, 
+                            ticks: { color: '#cbd5e1', font: { family: "'Outfit', sans-serif" } }
+                        }
+                    }
                 }
             });
 
-            // Hide the export button in the PDF
-            const exportBtn = element.querySelector('button[onclick="downloadPDF()"]');
-            if (exportBtn) exportBtn.style.display = 'none';
+            const allKebelesImgData = tempCanvas.toDataURL('image/png', 1.0);
+            
+            // Wrap in a dark container so the light text of the chart is visible and it looks premium
+            let chartImgHtml = `
+                <div style="margin: 0 auto 30px auto; background: #0f172a; padding: 25px; border-radius: 12px; text-align: center; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);">
+                    <h3 style="color: #cbd5e1; margin-top: 0; margin-bottom: 20px; font-size: 15px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">Rainfall Trends Across All Kebeles (2015-2025)</h3>
+                    <img src="${allKebelesImgData}" style="max-width: 100%; height: auto; display: inline-block;" />
+                </div>
+            `;
 
+            // Header for the report
+            let html = `
+                <div style="text-align: center; margin-bottom: 25px;">
+                    <h1 style="font-size: 26px; font-weight: 700; color: #0f172a; margin: 0;">Environmentalist Development Association Ethiopia</h1>
+                    <h2 style="font-size: 16px; font-weight: 500; color: #475569; margin-top: 8px;">Inchini Rainfall Pattern - Comprehensive Data Report (2015-2025)</h2>
+                </div>
+                ${chartImgHtml}
+                <table style="width: 100%; border-collapse: collapse; font-size: 11px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+                    <thead>
+                        <tr style="background-color: #0f172a; color: #ffffff; text-align: left;">
+                            <th style="padding: 10px; border: 1px solid #334155;">Kebele Name</th>
+            `;
+            
+            years.forEach(y => {
+                html += `<th style="padding: 10px; border: 1px solid #334155; text-align: center;">${y}</th>`;
+            });
+            html += `<th style="padding: 10px; border: 1px solid #334155; text-align: center; background-color: #0369a1;">Mean</th></tr></thead><tbody>`;
+            
+            processedData.forEach((k, index) => {
+                const bg = index % 2 === 0 ? '#ffffff' : '#f1f5f9';
+                html += `<tr style="background-color: ${bg};">
+                    <td style="padding: 8px 10px; border: 1px solid #cbd5e1; font-weight: 600; color: #0f172a;">${k.name}</td>`;
+                
+                years.forEach(y => {
+                    html += `<td style="padding: 8px 10px; border: 1px solid #cbd5e1; text-align: center; color: #334155;">${k.data[y].toFixed(2)}</td>`;
+                });
+                
+                html += `<td style="padding: 8px 10px; border: 1px solid #cbd5e1; text-align: center; font-weight: bold; color: #0284c7; background-color: ${index % 2 === 0 ? '#f0f9ff' : '#e0f2fe'};">${k.mean.toFixed(2)}</td>
+                </tr>`;
+            });
+            
+            html += `</tbody></table>
+                <div style="margin-top: 30px; font-size: 10px; color: #64748b; text-align: right;">
+                    Generated on: ${new Date().toLocaleDateString()}
+                </div>
+            `;
+            
+            printContainer.innerHTML = html;
+            
             const opt = {
-                margin:       [0.3, 0.3, 0.3, 0.3],
-                filename:     'EDAE_Rainfall_Report.pdf',
-                image:        { type: 'jpeg', quality: 1 },
-                html2canvas:  { 
-                    scale: 2, 
-                    useCORS: true, 
-                    windowWidth: 1920, // Forces xl breakpoints in Tailwind
-                    scrollY: 0
-                },
-                jsPDF:        { unit: 'in', format: 'a3', orientation: 'landscape' }
+                margin:       [0.4, 0.4, 0.4, 0.4],
+                filename:     'Inchini_Rainfall_Data_Report.pdf',
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2, useCORS: true },
+                jsPDF:        { unit: 'in', format: 'a4', orientation: 'landscape' }
             };
             
-            html2pdf().set(opt).from(element).save().then(() => {
-                // Restore everything
-                nodes.forEach(node => {
-                    if (originalClasses.has(node)) {
-                        node.className = originalClasses.get(node);
-                    }
-                    const origStyle = originalStyles.get(node);
-                    if (origStyle === null) {
-                        node.removeAttribute('style');
-                    } else {
-                        node.setAttribute('style', origStyle);
-                    }
-                });
-            });
+            html2pdf().set(opt).from(printContainer).save();
         }
     </script>
 </body>
